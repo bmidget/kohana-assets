@@ -99,13 +99,6 @@ class Assets_Core {
 		}
 	}
 
-	public function replace($type, $key, $script)
-	{
-		$thiw->_js[$key] = $script;
-
-		return $this;
-	}
-
 	protected function _compile_css($contents)
 	{
 		$lessc = new lessc;
