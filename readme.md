@@ -36,12 +36,13 @@ $assets
 $assets
 	->css('bootstrap', DOCROOT.'bootstrap/less/bootstrap.less')
 	->js('site' => Kohana::find_file('media', 'js/site.js'));
+```
 
 ## Render assets
 
 To render assets that have been added to the assets object, use `Assets::get()`.
 
 ```
-$assets->get('css');
-$assets->get('js');
+<?=$assets->get('css')?>
+<?=$assets->get('js')?>
 ```
