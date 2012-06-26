@@ -1,5 +1,8 @@
 # JS and CSS assets library for Kohana
 
+- Compile and serve js, css, and less files
+- For Kohana 3.2.x
+
 ## Create an assets object
 
 ```
@@ -10,7 +13,7 @@ $assets = Assets::factory();
 
 Every asset you add has to have a key and a value associated with it. They key is to keep track of all the assets already added, and the value is the path to the asset.
 
-!! If you want to add asset files to your assets object that area located in the directory defined in your config file, do not start your path with an `/`.
+!! If you want to add asset files to your assets object that area located in the directory defined in your config file, do not start your path with a `/`.
 
 ```
 // With an array
