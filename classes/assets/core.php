@@ -5,14 +5,16 @@ require Kohana::find_file('vendor', 'jsmin/jsmin');
 
 class Assets_Core {
 
-	protected $_css = array();
-	protected $_compile_paths = array
-	(
-		'css' => 'assets/css/compiled',
-		'js'  => 'assets/js/compiled',
-	);
-	protected $_js = array();
+	protected $_css_bootstrap;
+	protected $_compile_paths = array();
+	protected $_config = array();
 	protected $_name = 'core';
+	protected $_import_dirs = array();
+	protected $_paths = array
+	(
+		'css' => array(),
+		'js'  => array(),
+	);
 
 	public static function factory($name = null)
 	{
@@ -21,10 +23,21 @@ class Assets_Core {
 
 	public function __construct($name = null)
 	{
+		$this->_config = Kohana::$config->load('assets');
+
 		if ($name !== null)
 		{
 			$this->_name = $name;
 		}
+
+		$this->_compile_paths = Arr::get($this->_config, 'compile_paths');
+	}
+
+	public function css_bootstrap($path)
+	{
+		$this->_css_bootstrap = $path;
+
+		return $this;
 	}
 
 	public function css($key, $path = null)
@@ -38,7 +51,7 @@ class Assets_Core {
 		}
 		else
 		{
-			$this->_css[$key] = $path;
+			$this->_paths['css'][$key] = $path;
 		}
 
 		return $this;
@@ -61,15 +74,38 @@ class Assets_Core {
 		}
 
 		$contents = '';
-		foreach ($this->{'_'.$type} as $key => $value)
+		foreach ($this->_paths[$type] as $key => $value)
 		{
-			$contents.= file_get_contents(DOCROOT.'assets/'.$type.'/'.$value);
+			$file_location = $this->_get_file_location($type, $value);
+
+			$contents.= file_get_contents($file_location);
 		}
 
 		$compiled_contents = $this->{'_compile_'.$type}($contents);
+
+		$this->_remove_files($type, $hash);
 		$this->_write_file($compile_path, $compiled_contents);
 
 		return $this->_get_tag($type, $hash);
+	}
+
+	public function import_dirs($path)
+	{
+		if (is_array($path))
+		{
+			foreach ($path as $_path)
+			{
+				$this->import_dirs($_path);
+			}
+			
+			return $this;
+		}
+		else
+		{
+			$this->_import_dirs[] = $path;
+
+			return $this;
+		}
 	}
 
 	public function js($key, $path = NULL)
@@ -85,24 +121,45 @@ class Assets_Core {
 		}
 		else
 		{
-			$this->_js[$key] = $path;
+			$this->_paths['js'][$key] = $path;
 		}
+
+		return $this;
+	}
+
+	public function name($name)
+	{
+		$this->_name = $name;
 
 		return $this;
 	}
 
 	public function remove($type, $key)
 	{
-		if (isset($this->{'_'.$type}[$key]))
+		if (isset($this->_paths[$type][$key]))
 		{
-			unset($this->{'_'.$type}[$key]);
+			unset($this->_paths[$type][$key]);
 		}
 	}
 
 	protected function _compile_css($contents)
 	{
+		if ($this->_css_bootstrap)
+		{
+			$lessc = new lessc($this->_get_file_location('css', $this->_css_bootstrap));
+			$bootstrap = $lessc->parse();
+		}
+		else
+		{
+			$bootstrap = null;
+		}
+
 		$lessc = new lessc;
-		$css = $lessc->parse($contents);
+		if ( ! empty($this->_import_dirs))
+		{
+			$lessc->importDir = $this->_import_dirs;
+		}
+		$css = $lessc->parse($bootstrap.$contents);
 
 		return $css;
 	}
@@ -115,14 +172,52 @@ class Assets_Core {
 
 	protected function _get_compile_path($type, $hash)
 	{
-		$compile_path = DOCROOT.$this->_compile_paths[$type].'/'.$hash.'.'.$type;
+		$compile_path = DOCROOT.$this->_compile_paths[$type].$hash.'.'.$type;
 
 		return $compile_path;
 	}
 
+	protected function _get_file_location($type, $path)
+	{
+		if (strpos($path, '/') === 0)
+		{
+			$file_location = $path;
+		}
+		else
+		{
+			$locations = $this->_config['pre_compile_dirs'];
+
+			if ($locations[$type] instanceof Closure)
+			{
+				$file_location = $locations[$type]($path);
+			}
+			else
+			{
+				$file_location = $locations[$type].$path;
+			}
+		}
+
+		return $file_location;
+	}
+
+	protected function _get_file_name($type)
+	{
+		$array = $this->_paths[$type];
+
+		$str = '';
+		foreach ($array as $path)
+		{
+			$str.= $path;
+		}
+
+		$name = sha1($this->_name.$path);
+
+		return $name;
+	}
+
 	protected function _get_link_path($type, $hash)
 	{
-		return $this->_compile_paths[$type].'/'.$hash.'.'.$type;
+		return $this->_compile_paths[$type].$hash.'.'.$type;
 	}
 
 	protected function _get_tag($type, $hash)
@@ -142,19 +237,33 @@ class Assets_Core {
 
 	protected function _make_hash($type)
 	{
-		$array = $this->{'_'.$type};
+		$array = $this->_paths[$type];
 
 		$str = '';
 		foreach ($array as $path)
 		{
-			$str.= filemtime(DOCROOT.'assets/'.$type.'/'.$path);
+			$file_location = $this->_get_file_location($type, $path);
+
+			$str.= filemtime($file_location);
 		}
 
 		$hash = $str
-			? $this->_name.'_'.sha1($str)
+			? $this->_get_file_name($type).'_'.sha1($str)
 			: NULL;
 
 		return $hash;
+	}
+
+	protected function _remove_files($type, $hash)
+	{
+		$base = DOCROOT.$this->_compile_paths[$type];
+
+		$files = glob($base.$this->_get_file_name($type).'_*.'.$type);
+
+		foreach ($files as $file)
+		{
+			unlink($file);
+		}
 	}
 
 	protected function _write_file($path, $contents)
