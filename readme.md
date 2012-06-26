@@ -42,6 +42,6 @@ $assets
 To render assets that have been added to the assets object, use `Assets::get()`.
 
 ```
-<?=$assets->get('css')?>
-<?=$assets->get('js')?>
+$assets->get('css');
+$assets->get('js');
 ```
