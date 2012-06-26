@@ -179,7 +179,7 @@ class Assets_Core {
 
 	protected function _get_file_location($type, $path)
 	{
-		if (strpos($path, '/') === 0)
+		if (strpos($path, '/') === 0 OR strpos($path, 'http') === 0)
 		{
 			$file_location = $path;
 		}
