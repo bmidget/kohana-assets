@@ -5,7 +5,6 @@ require Kohana::find_file('vendor', 'jsmin/jsmin');
 
 class Assets_Core {
 
-	protected $_css_bootstrap;
 	protected $_compile_paths = array();
 	protected $_config = array();
 	protected $_name = 'core';
@@ -31,13 +30,6 @@ class Assets_Core {
 		}
 
 		$this->_compile_paths = Arr::get($this->_config, 'compile_paths');
-	}
-
-	public function css_bootstrap($path)
-	{
-		$this->_css_bootstrap = $path;
-
-		return $this;
 	}
 
 	public function css($key, $path = null)
@@ -144,22 +136,12 @@ class Assets_Core {
 
 	protected function _compile_css($contents)
 	{
-		if ($this->_css_bootstrap)
-		{
-			$lessc = new lessc($this->_get_file_location('css', $this->_css_bootstrap));
-			$bootstrap = $lessc->parse();
-		}
-		else
-		{
-			$bootstrap = null;
-		}
-
 		$lessc = new lessc;
 		if ( ! empty($this->_import_dirs))
 		{
 			$lessc->importDir = $this->_import_dirs;
 		}
-		$css = $lessc->parse($bootstrap.$contents);
+		$css = $lessc->parse($contents);
 
 		return $css;
 	}
