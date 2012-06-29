@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Kohana-assets : JS and CSS/LESS asset management for Kohana" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Kohana-assets</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/bmidget/kohana-assets">View on GitHub</a>
+
+          <h1 id="project_title">Kohana-assets</h1>
+          <h2 id="project_tagline">JS and CSS/LESS asset management for Kohana</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/bmidget/kohana-assets/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/bmidget/kohana-assets/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>JS and CSS assets library for Kohana</h1>
+
+<ul>
+<li>Compile and serve js, css, and less files</li>
+<li>For Kohana 3.2.x</li>
+</ul><h2>Install Kohana-Assets</h2>
+
+<pre><code>$ cd your_repo_root/repo_name
+$ git submodule add https://github.com/bmidget/kohana-assets.git modules/assets
+$ git submodule update --init --recursive
+</code></pre>
+
+<h2>Create an assets object</h2>
+
+<pre><code>$assets = Assets::factory();
+</code></pre>
+
+<h2>Add css or js files to the assets object</h2>
+
+<p>Every asset you add has to have a key and a value associated with it. They key is to keep track of all the assets already added, and the value is the path to the asset.</p>
+
+<p>!! If you want to add asset files to your assets object that area located in the directory defined in your config file, do not start your path with a <code>/</code>.</p>
+
+<pre><code>// With an array
+$assets
+    -&gt;css(array(
+        'base' =&gt; 'base.less',
+        'section' =&gt; 'section.less',
+    ))
+    -&gt;js(array(
+        'plugins' =&gt; 'plugins/plugins.js',
+        'section' =&gt; 'section.js',
+    ));
+
+// You can also add them one at a time
+$assets
+    -&gt;css('base', 'base.less')
+    -&gt;js('section', 'section.js');
+
+// Tell Assets to use a specific path for your asset by beginning the value with a `/`
+$assets
+    -&gt;css('bootstrap', DOCROOT.'bootstrap/less/bootstrap.less')
+    -&gt;js('site' =&gt; Kohana::find_file('media', 'js/site.js'));
+</code></pre>
+
+<h2>Render assets</h2>
+
+<p>To render assets that have been added to the assets object, use <code>Assets::get()</code>.</p>
+
+<pre><code>&lt;?=$assets-&gt;get('css')?&gt;
+&lt;?=$assets-&gt;get('js')?&gt;
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Kohana-assets maintained by <a href="https://github.com/bmidget">bmidget</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
