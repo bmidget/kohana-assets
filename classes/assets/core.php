@@ -373,10 +373,6 @@ class Assets_Core {
 	 */
 	protected function _get_link_path($type, $hash)
 	{
-		$prefix = (Request::$current->secure() === true)
-			? 'https://'.$_SERVER['HTTP_HOST'].'/'
-			: 'http://'.$_SERVER['HTTP_HOST'].'/';
-
 		return $this->_compile_paths[$type].$hash.'.'.$type;
 	}
 
