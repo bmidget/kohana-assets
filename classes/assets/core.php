@@ -256,7 +256,6 @@ class Assets_Core {
 		return $this;
 	}
 
-
 	/**
 	 * Compile into a single string using PHPLess
 	 * 

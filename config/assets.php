@@ -4,8 +4,8 @@ return array
 (
 	'compile_paths' => array
 	(
-		'css' => 'assets/css/compiled',
-		'js'  => 'assets/js/compiled',
+		'css' => 'assets/css/compiled/',
+		'js'  => 'assets/js/compiled/',
 	),
 	'pre_compile_dirs' => array
 	(
