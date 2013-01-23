@@ -357,7 +357,7 @@ class Assets_Core {
 			$str.= $path;
 		}
 
-		$name = sha1($this->_name.$path);
+		$name = sha1($this->_name.$str);
 
 		return $name;
 	}
