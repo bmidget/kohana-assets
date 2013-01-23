@@ -7,9 +7,9 @@ class Assets_Core {
 
 	/**
 	 * Where to save compiled css and js files
-	 * 
+	 *
 	 * (default value: array())
-	 * 
+	 *
 	 * @var array
 	 * @access protected
 	 */
@@ -17,9 +17,9 @@ class Assets_Core {
 
 	/**
 	 * The array from assets config file
-	 * 
+	 *
 	 * (default value: array())
-	 * 
+	 *
 	 * @var array
 	 * @access protected
 	 */
@@ -27,9 +27,9 @@ class Assets_Core {
 
 	/**
 	 * Name of the assets instance
-	 * 
+	 *
 	 * (default value: 'core')
-	 * 
+	 *
 	 * @var string
 	 * @access protected
 	 */
@@ -37,9 +37,9 @@ class Assets_Core {
 
 	/**
 	 * Default directories to import from
-	 * 
+	 *
 	 * (default value: array())
-	 * 
+	 *
 	 * @var array
 	 * @access protected
 	 */
@@ -48,7 +48,7 @@ class Assets_Core {
 	/**
 	 * Arrays containing all the added paths for js and css/less
 	 * that will be compiled together
-	 * 
+	 *
 	 * @var mixed
 	 * @access protected
 	 */
@@ -58,14 +58,14 @@ class Assets_Core {
 		'js'  => array(),
 	);
 
-	
+
 	/**
 	 * Factory method returns new assets object
-	 * 
+	 *
 	 * @access public
 	 * @static
 	 * @param mixed $name (default: null)
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public static function factory($name = null)
 	{
@@ -75,10 +75,10 @@ class Assets_Core {
 
 	/**
 	 * Assets __construct.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $name (default: null)
-	 * @return object
+	 * @return void
 	 */
 	public function __construct($name = null)
 	{
@@ -95,11 +95,11 @@ class Assets_Core {
 
 	/**
 	 * Add css paths or an array of paths for compiling
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $key
 	 * @param mixed $path (default: null)
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public function css($key, $path = null)
 	{
@@ -121,7 +121,7 @@ class Assets_Core {
 
 	/**
 	 * Get tag for ether 'css' or 'js'
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $type
 	 * @return string
@@ -161,10 +161,10 @@ class Assets_Core {
 
 	/**
 	 * Add import directories for LESS compiling
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $path
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public function import_dirs($path)
 	{
@@ -174,7 +174,7 @@ class Assets_Core {
 			{
 				$this->import_dirs($_path);
 			}
-			
+
 			return $this;
 		}
 		else
@@ -188,11 +188,11 @@ class Assets_Core {
 
 	/**
 	 * Add js paths or an array of paths for compiling
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $key
 	 * @param mixed $path (default: NULL)
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public function js($key, $path = NULL)
 	{
@@ -216,10 +216,10 @@ class Assets_Core {
 
 	/**
 	 * Set the asset object name
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $name
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public function name($name)
 	{
@@ -231,11 +231,11 @@ class Assets_Core {
 
 	/**
 	 * Remove a specific css or js path or array of paths from added paths
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $type
 	 * @param mixed $key
-	 * @return object
+	 * @return Assets_Core
 	 */
 	public function remove($type, $key = null)
 	{
@@ -258,7 +258,7 @@ class Assets_Core {
 
 	/**
 	 * Compile into a single string using PHPLess
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $contents
 	 * @return string
@@ -278,7 +278,7 @@ class Assets_Core {
 
 	/**
 	 * Compile JS into a single string using JSMin
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $contents
 	 * @return string
@@ -292,7 +292,7 @@ class Assets_Core {
 
 	/**
 	 * Get the path to compile to
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $hash
@@ -307,7 +307,7 @@ class Assets_Core {
 
 	/**
 	 * Retrieve the file location for a pre-compiled js/css/less asset
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $path
@@ -315,8 +315,9 @@ class Assets_Core {
 	 */
 	protected function _get_file_location($type, $path)
 	{
-		if (strpos($path, '/') === 0 OR strpos($path, 'http') === 0)
+		if (strpos($path, '/') === 0 OR strpos($path, 'http') === 0 OR strpos($path,':\\') === 1)
 		{
+
 			$file_location = $path;
 		}
 		else
@@ -341,7 +342,7 @@ class Assets_Core {
 	 * Retrieve a namespace from the compiled file
 	 * This namespace is the prefix before the '_' in the compiled file name:
 	 * ex: 627a74de1fc5a2e750e85a2995a5ac6a332e5018_70e79492f9153932dea604732a27f5145821876c.js
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @return string
@@ -356,14 +357,14 @@ class Assets_Core {
 			$str.= $path;
 		}
 
-		$name = sha1($this->_name.$path);
+		$name = sha1($this->_name.$str);
 
 		return $name;
 	}
 
 	/**
 	 * Retrieve the path that the style or script HTML tag will point to
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $hash
@@ -376,7 +377,7 @@ class Assets_Core {
 
 	/**
 	 * Build and return the style or script HTML tag
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $hash
@@ -402,7 +403,7 @@ class Assets_Core {
 	 * and a last edited date of those files.
 	 * The format for this hash is {namespace}_{edited}.ext
 	 * ex: 627a74de1fc5a2e750e85a2995a5ac6a332e5018_70e79492f9153932dea604732a27f5145821876c.js
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @return string
@@ -429,7 +430,7 @@ class Assets_Core {
 	/**
 	 * Remove files fromt he compiled directory for the same set of assets that
 	 * are outdated do to edits
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $hash
@@ -449,7 +450,7 @@ class Assets_Core {
 
 	/**
 	 * Write the compiled string to the compiled directory
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $path
 	 * @param mixed $contents
