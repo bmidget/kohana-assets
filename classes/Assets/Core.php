@@ -25,7 +25,7 @@ abstract class Assets_Core {
 	 * @var string
 	 * @access protected
 	 */
-	protected $_name = 'core';
+	protected $_name = 'Core';
 	
 	/**
 	 * Where to save compiled css and js files
@@ -128,7 +128,7 @@ abstract class Assets_Core {
 	{
 		if (is_array($path))
 		{
-			$this->_import_dirs = Arr::merge($this->_import_dirs, $path);
+			$this->_import_dirs += $path;
 		}
 		else
 		{
@@ -138,7 +138,29 @@ abstract class Assets_Core {
 	}
 	
 	/**
-	 * Add css paths or an array of paths for compiling
+	 * Add path or an array of paths for compiling
+	 *
+	 * @access protected
+	 * @param string $type
+	 * @param mixed  $key
+	 * @param mixed  $path
+	 * @return Assets
+	 */
+	protected function _add($type, $key, $path = NULL)
+	{
+		if (is_array($key))
+		{
+			$this->_paths[$type] = Arr::merge($this->_paths[$type], $key);
+		}
+		else
+		{
+			$this->_paths[$type][$key] = $path;
+		}
+		return $this;
+	}
+	
+	/**
+	 * Add css path or an array of paths for compiling
 	 *
 	 * @access public
 	 * @param mixed $key
@@ -147,20 +169,11 @@ abstract class Assets_Core {
 	 */
 	public function css($key, $path = NULL)
 	{
-		// TODO: create a method based on css() and js()
-		if (is_array($key))
-		{
-			$this->_paths['css'] = Arr::merge($this->_paths['css'], $key);
-		}
-		else
-		{
-			$this->_paths['css'][$key] = $path;
-		}
-		return $this;
+		return $this->_add('css', $key, $path);
 	}
 	
 	/**
-	 * Add js paths or an array of paths for compiling
+	 * Add js path or an array of paths for compiling
 	 *
 	 * @access public
 	 * @param mixed $key
@@ -169,15 +182,7 @@ abstract class Assets_Core {
 	 */
 	public function js($key, $path = NULL)
 	{
-		if (is_array($key))
-		{
-			$this->_paths['js'] = Arr::merge($this->_paths['js'], $key);
-		}
-		else
-		{
-			$this->_paths['js'][$key] = $path;
-		}
-		return $this;
+		return $this->_add('js', $key, $path);
 	}
 	
 	/**
@@ -209,10 +214,7 @@ abstract class Assets_Core {
 	{
 		if (is_array($type))
 		{
-			foreach ($type as $key => $value)
-			{
-				unset($this->_paths[$key][$value]);
-			}
+			$this->_paths = array_diff_assoc($this->_paths, $type);
 		}
 		else
 		{
@@ -242,7 +244,7 @@ abstract class Assets_Core {
 	 * Compile JS into a single string using JSMin
 	 *
 	 * @access protected
-	 * @param mixed $contents
+	 * @param  mixed $contents
 	 * @return string
 	 */
 	protected function _compile_js($contents)
@@ -254,8 +256,8 @@ abstract class Assets_Core {
 	 * Get the path to compile to
 	 *
 	 * @access protected
-	 * @param mixed $type
-	 * @param mixed $hash
+	 * @param  string $type
+	 * @param  string $hash
 	 * @return string
 	 */
 	protected function _get_compile_path($type, $hash)
@@ -267,14 +269,13 @@ abstract class Assets_Core {
 	 * Retrieve the file location for a pre-compiled js/css/less asset
 	 *
 	 * @access protected
-	 * @param mixed $type
-	 * @param mixed $path
+	 * @param  mixed $type
+	 * @param  mixed $path
 	 * @return string
 	 */
 	protected function _get_file_location($type, $path)
 	{
-		// TODO: replace on preg_match
-		if (strpos($path, '/') === 0 OR strpos($path, 'http') === 0 OR strpos($path, ':\\') === 1)
+		if (preg_match('/^(\/|http|https)|([A-Z]:\\\\)/iU', $path))
 		{
 			return $path;
 		}
