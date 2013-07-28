@@ -2,6 +2,7 @@
 
 return array
 (
+	'minify_js' => true,
 	'compile_paths' => array
 	(
 		'css' => 'assets/css/compiled/',

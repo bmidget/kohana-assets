@@ -285,8 +285,16 @@ class Assets_Core {
 	 */
 	protected function _compile_js($contents)
 	{
-		$mini_js = JSMin::minify($contents);
-		return $mini_js;
+		if (Arr::get($this->_config, 'minify_js', true))
+		{
+			$js = JSMin::minify($contents);
+		}
+		else
+		{
+			$js = $contents;
+		}
+
+		return $js;
 	}
 
 
