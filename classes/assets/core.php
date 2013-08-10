@@ -126,7 +126,7 @@ class Assets_Core {
 	 * @param mixed $type
 	 * @return string
 	 */
-	public function get($type)
+	public function get($type, $return_only_hash = false)
 	{
 		$hash = $this->_make_hash($type);
 
@@ -139,7 +139,9 @@ class Assets_Core {
 
 		if (file_exists($compile_path))
 		{
-			return $this->_get_tag($type, $hash);
+			return $return_only_hash === true
+				? $hash
+				: $this->_get_tag($type, $hash);
 		}
 
 		$contents = '';
@@ -155,7 +157,14 @@ class Assets_Core {
 		$this->_remove_files($type, $hash);
 		$this->_write_file($compile_path, $compiled_contents);
 
-		return $this->_get_tag($type, $hash);
+		if ($return_only_hash === true)
+		{
+			return $hash;
+		}
+		else
+		{
+			return $this->_get_tag($type, $hash);
+		}
 	}
 
 
