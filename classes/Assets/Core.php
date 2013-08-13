@@ -279,7 +279,7 @@ class Assets_Core {
 		{
 			$lessc->importDir = $this->_import_dirs;
 		}
-		$css = $lessc->parse($contents);
+		$css = $lessc->compile($contents);
 
 		return $css;
 	}
