@@ -1,0 +1,23 @@
+{
+	"name":        "bmidget/kohana-assets",
+	"type":        "kohana-module",
+	"description": "Handy library for serving up pre-compiled js and css/less files",
+	"homepage":    "https://github.com/bmidget/kohana-assets",
+	"license":     "Apache",
+	"keywords":    ["assets", "less", "kohana"],
+	"authors": [
+		{
+			"name":     "Ben Midget",
+			"role":     "developer"
+		}
+	],
+	"support": {
+		"issues":   "https://github.com/bmidget/kohana-assets/issues",
+		"source":   "https://github.com/bmidget/kohana-assets"
+	},
+	"require": {
+		"composer/installers": "~1.0",
+		"kohana/core":         ">=3.3",
+		"php":                 ">=5.3.3"
+	}
+}
