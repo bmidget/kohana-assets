@@ -119,11 +119,6 @@ class Assets_Core {
 		}
 
 		$this->_compile_paths = Arr::get($this->_config, 'compile_paths');
-
-		if (Arr::get($this->_config, 'use_composer') !== TRUE)
-		{
-			require Kohana::find_file('vendor', 'lessphp/lessc.inc');
-		}
 	}
 
 
