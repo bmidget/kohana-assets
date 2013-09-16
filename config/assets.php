@@ -3,6 +3,7 @@
 return array
 (
 	'minify_js' => true,
+	'compile_config_filename' => 'asset_defs',
 	'compile_paths' => array
 	(
 		'css' => 'assets/css/compiled/',

@@ -8,22 +8,54 @@ class Assets_Core {
 	/**
 	 * Where to save compiled css and js files
 	 *
-	 * (default value: array())
+	 * (default value: [])
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $_compile_paths = array();
+	protected $_compile_paths = [];
 
 	/**
 	 * The array from assets config file
 	 *
-	 * (default value: array())
+	 * (default value: [])
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $_config = array();
+	protected $_config = [];
+
+	/**
+	 * Default names for hashgroups
+	 * 
+	 * @var array
+	 * @access protected
+	 */
+	protected $_default_hashgroup = [
+		'css' => 'default',
+		'js' => 'default',
+	];
+
+	/**
+	 * Stored hash values that point to compiled files
+	 * 
+	 * @var mixed
+	 * @access protected
+	 */
+	protected $_hashes = [
+		'css' => [],
+		'js' => [],
+	];
+
+	/**
+	 * All the different hashgroups
+	 * 
+	 * (default value: [])
+	 * 
+	 * @var array
+	 * @access protected
+	 */
+	protected $_hashgroup = [];
 
 	/**
 	 * Name of the assets instance
@@ -38,12 +70,12 @@ class Assets_Core {
 	/**
 	 * Default directories to import from
 	 *
-	 * (default value: array())
+	 * (default value: [])
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $_import_dirs = array();
+	protected $_import_dirs = [];
 
 	/**
 	 * Arrays containing all the added paths for js and css/less
@@ -54,8 +86,8 @@ class Assets_Core {
 	 */
 	protected $_paths = array
 	(
-		'css' => array(),
-		'js'  => array(),
+		'css' => [],
+		'js'  => [],
 	);
 
 
@@ -167,6 +199,30 @@ class Assets_Core {
 		}
 	}
 
+	/**
+	 * Get cached assets
+	 * 
+	 * @access public
+	 * @param mixed $type
+	 * @param bool $get_tag (default: false)
+	 * @return string
+	 */
+	public function get_cached($type, $get_tag = false)
+	{
+		$this->_get_vals();
+
+		$default_name = $this->_default_hashgroup[$type];
+		$name = Arr::get($this->_hashgroup, $type) ?: $default_name;
+
+		$hash = Arr::path($this->_hashes, $type.'.'.$name) ?: Arr::path($this->_hashes, $type.'.'.$default_name);
+
+		if ($get_tag === true)
+		{
+			return $this->_get_tag($type, $hash);
+		}
+
+		return $hash;
+	}
 
 	/**
 	 * Add import directories for LESS compiling
@@ -263,6 +319,57 @@ class Assets_Core {
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Set the hashgroup
+	 * 
+	 * @access public
+	 * @param mixed $type
+	 * @param mixed $hashgroup
+	 * @return void
+	 */
+	public function set_hashgroup($type, $hashgroup)
+	{
+		$this->_hashgroup[$type] = $hashgroup;
+	}
+
+	/**
+	 * Update config file that points to various hashes
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function update_config()
+	{
+		$css_array = $this->_run_css();
+		$js_array = $this->_run_js();
+
+		$array = array
+		(
+			'css' => $css_array,
+			'js' => $js_array,
+		);
+
+		$config_contents = "<?php defined('SYSPATH') or die('No direct script access.');\n\n return ";
+		$config_contents.= var_export($array, true);
+		$config_contents.= ';';
+
+		$this->_hashes = $array;
+
+		$filename = Arr::get($this->_config, 'compile_config_filename', 'asset_defs');
+		$pathname = APPPATH.'config/'.$filename.'.php';
+
+		if ( ! file_exists($pathname))
+		{
+			$fp = fopen($pathname, 'w');
+			fwrite($fp, $config_contents);
+			fclose($fp);
+		}
+		else
+		{
+			file_put_contents($pathname, $config_contents);
+		}
 	}
 
 	/**
@@ -416,6 +523,26 @@ class Assets_Core {
 	}
 
 	/**
+	 * Get values from config file.
+	 * 
+	 * @access protected
+	 * @return void
+	 */
+	protected function _get_vals()
+	{
+		$filename = Arr::get($this->_config, 'compile_config_filename', 'asset_defs');
+		if (empty($this->_hashes['css']))
+		{
+			$this->_hashes['css'] = Kohana::$config->load($filename.'.css') ?: [];
+		}
+
+		if (empty($this->_hashes['js']))
+		{
+			$this->_hashes['js'] = Kohana::$config->load($filename.'.js') ?: [];
+		}
+	}
+
+	/**
 	 * Make a hash that is the represents a namespace for all the assets included in the compiled file
 	 * and a last edited date of those files.
 	 * The format for this hash is {namespace}_{edited}.ext
@@ -463,6 +590,110 @@ class Assets_Core {
 		{
 			unlink($file);
 		}
+	}
+
+	/**
+	 * Pre-compile all css files
+	 * 
+	 * @access protected
+	 * @return void
+	 */
+	protected function _run_css()
+	{
+		$filename = Arr::get($this->_config, 'compile_config_filename', 'asset_defs');
+
+		$config = Kohana::$config->load('css');
+		$css_array = [];
+		$css_settings = Kohana::$config->load($filename.'.css') ?: [];
+		$return_array = $css_settings;
+
+		foreach ($config as $key => $value)
+		{
+			// Create new assets object
+			$asset = Assets::factory()
+				->css($value);
+
+			if ($hash = $asset->get('css', true))
+			{
+				$css_array[$key] = $hash;
+			}
+		}
+
+		if ( ! empty($css_array))
+		{
+			if ($css_settings !== $css_array)
+			{
+				$return_array = $css_array;
+
+				// Cleanup
+				$files = glob(DOCROOT.$this->_compile_paths['css'].'*');
+				foreach ($files as $file)
+				{
+					preg_match('/\/([a-zA-Z0-9_]+).css$/', $file, $matches);
+					if ($match = Arr::get($matches, 1))
+					{
+						if ( ! in_array($match, $css_array))
+						{
+							@unlink($file);
+						}
+					}
+				}
+			}
+		}
+
+		return $return_array;
+	}
+
+	/**
+	 * Pre-compile js files
+	 * 
+	 * @access protected
+	 * @return void
+	 */
+	protected function _run_js()
+	{
+		$filename = Arr::get($this->_config, 'compile_config_filename', 'asset_defs');
+
+		$config = Kohana::$config->load('js');
+		$js_array = [];
+		$js_settings = Kohana::$config->load($filename.'.js') ?: [];
+		$js_settings = [];
+
+		foreach ($config as $key => $value)
+		{
+			// Create new assets object
+			$asset = Assets::factory()
+				->js($value);
+
+			if ($hash = $asset->get('js', true))
+			{
+				$js_array[$key] = $hash;
+			}
+		}
+
+		if ( ! empty($js_array))
+		{
+			if ($js_settings !== $js_array)
+			{
+				$return_array = $js_array;
+
+				// Cleanup
+				$files = glob(DOCROOT.$this->_compile_paths['js'].'*');
+				foreach ($files as $file)
+				{
+					preg_match('/\/([a-zA-Z0-9_]+).js$/', $file, $matches);
+					if ($match = Arr::get($matches, 1))
+					{
+						if ( ! in_array($match, $js_array))
+						{
+							@unlink($file);
+						}
+					}
+				}
+			}
+		}
+
+		return $return_array;
 	}
 
 	/**

@@ -1,7 +1,4 @@
-# JS and CSS assets library for Kohana
-
-- Compile and serve js, css, and less files
-- For Kohana 3.2.x
+# JS and CSS assets libaray for Kohana 3.3
 
 ## Create an assets object
 
@@ -9,40 +6,79 @@
 $assets = Assets::factory();
 ```
 
-## Add css or js files to the assets object
-
-Every asset you add has to have a key and a value associated with it. They key is to keep track of all the assets already added, and the value is the path to the asset.
-
-!! If you want to add asset files to your assets object that area located in the directory defined in your config file, do not start your path with a `/`.
+## Define hashgroups in config files. Here are some examples:
 
 ```
-// With an array
-$assets
-	->css(array(
-		'base' => 'base.less',
-		'section' => 'section.less',
-	))
-	->js(array(
-		'plugins' => 'plugins/plugins.js',
-		'section' => 'section.js',
-	));
+// config/js.php
+$base = [
+	'bs' => DOCROOT.'assets/bootstrap/dist/js/bootstrap.min.js',
+	'site' => DOCROOT.'assets/js/site.js',
+];
 
-// You can also add them one at a time
-$assets
-	->css('base', 'base.less')
-	->js('section', 'section.js');
+return [
+	'default' => $base,
+	'admin' => $base + [
+		'footable' => DOCROOT.'assets/footable/js/footable.js',
+		'footable-paginate' => DOCROOT.'assets/footable/js/footable.paginate.js',
+		'footable-filter' => DOCROOT.'assets/footable/js/footable.filter.js',
+		'footable-sort' => DOCROOT.'assets/footable/js/footable.sort.js',
+		'admin' => DOCROOT.'assets/js/admin.js',
+	]
+];
 
-// Tell Assets to use a specific path for your asset by beginning the value with a `/`
-$assets
-	->css('bootstrap', DOCROOT.'bootstrap/less/bootstrap.less')
-	->js('site' => Kohana::find_file('media', 'js/site.js'));
+// config/css.php
+return [
+	'default' = [
+		'site' => DOCROOT.'assets/less/site.less',
+	],
+	'public' => [
+		'site' => DOCROOT.'assets/less/site.less',
+		'public' => DOCROOT.'assets/less/public.less',
+	],
+	'admin' => [
+		'site' => DOCROOT.'assets/less/site.less',
+		'footable' => DOCROOT.'assets/less/footable.less',
+		'admin' => DOCROOT.'assets/less/admin.less',
+	],
+	'special_page' => [
+		'site' => DOCROOT.'assets/less/site.less',
+		'special' => DOCROOT.'assets/less/special.less',
+	],
+];
 ```
 
-## Render assets
+## Pre-compile assets
 
-To render assets that have been added to the assets object, use `Assets::get()`.
+You can create a minion task to do this as a deployment script for your production environment.
 
 ```
-<?=$assets->get('css')?>
-<?=$assets->get('js')?>
+class Task_Asset_Compile extends Minion_Task {
+
+	protected function _execute( array $params)
+	{
+		$asset = Assets::factory();
+		$asset->update_config();
+	}
+
+}
+```
+
+And in your dev environment, it's nice to update the compiled assets every refresh. Here's an example of setting this up in a Template controller:
+
+```
+$this->template->bind('assets', $this->_assets);
+
+$this->_assets = Assets::factory();
+
+if (Kohana::$environment === Kohana::DEVELOPMENT)
+{
+	$this->_assets->update_config();
+}
+```
+
+## And in your view template, return the script tags pointing to the proper compiled js and css files
+
+```
+<?=$assets->get_cached('css', true)?>
+<?=$assets->get_cached('js', true)?>
 ```
