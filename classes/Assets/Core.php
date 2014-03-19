@@ -34,6 +34,14 @@ class Assets_Core {
 	];
 
 	/**
+	 * Whether or not to run a full recompile
+	 * 
+	 * @var boolean
+	 * @access protected
+	 */
+	protected $_force_recompile = false;
+
+	/**
 	 * Stored hash values that point to compiled files
 	 * 
 	 * @var mixed
@@ -166,22 +174,32 @@ class Assets_Core {
 
 		$compile_path = $this->_get_compile_path($type, $hash);
 
-		if (file_exists($compile_path))
-		{
-			return $return_only_hash === true
-				? $hash
-				: $this->_get_tag($type, $hash);
+		if ($this->_force_recompile !== true)
+		{	
+			if (file_exists($compile_path))
+			{
+				return $return_only_hash === true
+					? $hash
+					: $this->_get_tag($type, $hash);
+			}
 		}
 
-		$contents = '';
-		foreach ($this->_paths[$type] as $key => $value)
+		if ($type === 'css')
 		{
-			$file_location = $this->_get_file_location($type, $value);
-
-			$contents.= file_get_contents($file_location);
+			$compiled_contents = $this->_compile_css();
 		}
-
-		$compiled_contents = $this->{'_compile_'.$type}($contents);
+		else
+		{
+			$contents = '';
+			foreach ($this->_paths[$type] as $key => $value)
+			{
+				$file_location = $this->_get_file_location($type, $value);
+	
+				$contents.= file_get_contents($file_location);
+			}
+	
+			$compiled_contents = $this->{'_compile_'.$type}($contents);
+		}
 
 		$this->_remove_files($type, $hash);
 		$this->_write_file($compile_path, $compiled_contents);
@@ -222,29 +240,32 @@ class Assets_Core {
 	}
 
 	/**
+	 * Set whether or not to force a full recompile
+	 * 
+	 * @access public
+	 * @param mixed $type
+	 * @param bool $get_tag (default: false)
+	 * @return string
+	 */
+	public function force_recompile($setting = true)
+	{
+		$this->_force_recompile = $setting;
+
+		return $this;
+	}
+
+	/**
 	 * Add import directories for LESS compiling
 	 *
 	 * @access public
-	 * @param mixed $path
+	 * @param array $directories
 	 * @return Assets_Core
 	 */
-	public function import_dirs($path)
+	public function import_dirs( array $directories)
 	{
-		if (is_array($path))
-		{
-			foreach ($path as $_path)
-			{
-				$this->import_dirs($_path);
-			}
+		$this->_import_dirs = Arr::merge($this->_import_dirs, $directories);
 
-			return $this;
-		}
-		else
-		{
-			$this->_import_dirs[] = $path;
-
-			return $this;
-		}
+		return $this;
 	}
 
 
@@ -376,15 +397,27 @@ class Assets_Core {
 	 * @param mixed $contents
 	 * @return string
 	 */
-	protected function _compile_css($contents)
+	protected function _compile_css()
 	{
-		$lessc = new lessc;
+		$parser = new Less_Parser;
+
+		if (Arr::get($this->_config, 'minify_css', false))
+		{
+			$parser->setOption('compress', true);
+		}
+
 		if ( ! empty($this->_import_dirs))
 		{
-			$lessc->importDir = $this->_import_dirs;
+			$parser->SetImportDirs($this->_import_dirs);
 		}
-		$css = $lessc->compile($contents);
 
+		foreach ($this->_paths['css'] as $file)
+		{
+			$file_location = $this->_get_file_location('css', $file);
+			$parser->parseFile($file_location);
+		}
+
+		$css = $parser->getCss();
 		return $css;
 	}
 
@@ -608,7 +641,8 @@ class Assets_Core {
 		{
 			// Create new assets object
 			$asset = Assets::factory()
-				->css($value);
+				->css($value)
+				->force_recompile($this->_force_recompile);
 
 			if ($hash = $asset->get('css', true))
 			{
@@ -660,7 +694,8 @@ class Assets_Core {
 		{
 			// Create new assets object
 			$asset = Assets::factory()
-				->js($value);
+				->js($value)
+				->force_recompile($this->_force_recompile);
 
 			if ($hash = $asset->get('js', true))
 			{
