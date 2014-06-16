@@ -401,7 +401,7 @@ class Assets_Core {
 	{
 		$parser = new Less_Parser;
 
-		if (Arr::get($this->_config, 'minify_css', false))
+		if (Arr::get($this->_config, 'minify_css', true))
 		{
 			$parser->setOption('compress', true);
 		}
