@@ -47,6 +47,13 @@ return [
 ];
 ```
 
+## Then specify the hashgroup to use
+
+```
+$assets->set_hashgroup('css', 'admin');
+$assets->set_hashgroup('js','admin');
+```
+
 ## Pre-compile assets
 
 You can create a minion task to do this as a deployment script for your production environment.
