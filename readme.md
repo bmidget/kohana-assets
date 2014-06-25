@@ -25,6 +25,10 @@ $base = [
 		'jqueryCustom' => DOCROOT.'assets/js/core/common/jquery.custom.js'
 	]
 ];
+
+return [
+  'base' => $base
+];
 ```
 
 #### config/css.php
@@ -46,6 +50,10 @@ $base = [
 		'common'     => DOCROOT.'assets/css/core/common/common.css'
 	]
 ];
+
+return [
+  'base' => $base
+];
 ```
 
 ## Create an assets object and set hashgroups
@@ -59,7 +67,6 @@ if (Kohana::$environment != Kohana::PRODUCTION)
 	$assets->update_config();
 ```
 The "update_config()" method is useful in order to update the compiled assets every refresh in your devs environnements.
-
 
 ## Render the tags in your views
 
@@ -84,11 +91,4 @@ class Task_Asset_Compile extends Minion_Task {
 }
 ```
 
-## And in your view template, return the script tags pointing to the proper compiled js and css files
-
-```
-<?=$assets->get_cached('css', true)?>
-<?=$assets->get_cached('js', true)?>
-```
-
-That's pretty much it! Enjoy!
+##That's pretty much it! Enjoy!
