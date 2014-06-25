@@ -30,7 +30,7 @@ class Assets_Core {
 	 */
 	protected $_default_hashgroup = [
 		'css' => 'default',
-		'js' => 'default',
+		'js'  => 'default',
 	];
 
 	/**
@@ -215,28 +215,64 @@ class Assets_Core {
 	}
 
 	/**
-	 * Get cached assets
+	 * Get all tags.
 	 * 
 	 * @access public
-	 * @param mixed $type
-	 * @param bool $get_tag (default: false)
+	 * @param  mixed $type
 	 * @return string
 	 */
-	public function get_cached($type, $get_tag = false)
+	public function get_tags($type)
 	{
 		$this->_get_vals();
-
 		$default_name = $this->_default_hashgroup[$type];
 		$name = Arr::get($this->_hashgroup, $type) ?: $default_name;
 
-		$hash = Arr::path($this->_hashes, $type.'.'.$name) ?: Arr::path($this->_hashes, $type.'.'.$default_name);
+		return $this->get_cdn_tags($type, $name).$this->get_local_tags($type, $default_name, $name);
+	}
 
-		if ($get_tag === true)
+	/**
+	 * Get local assets (cached)
+	 * 
+	 * @access private
+	 * @param  mixed $type
+	 * @return string
+	 */
+	private function get_local_tags($type, $default_name, $name)
+	{
+		$hash = Arr::path($this->_hashes, $type.'.'.$name) ?: Arr::path($this->_hashes, $type.'.'.$default_name);
+		return $this->_get_tag($type, $hash);
+	}
+
+	/**
+	 * Get CDN assets
+	 * 
+	 * @access private
+	 * @param  mixed $type
+	 * @return string
+	 */
+	private function get_cdn_tags($type, $name)
+	{
+		$tags = '';
+		$config = Kohana::$config->load($type);
+		
+		foreach ($config[$name]['cdn'] as $defaultObject => $links)
 		{
-			return $this->_get_tag($type, $hash);
+			foreach ($links as $i => $link)
+			{
+				if ($type == 'js')
+				{
+					$tags .= (!$i)
+						? HTML::script($link)."\n"
+						: '<script type="text/javascript">'.$defaultObject.' || document.write(\'<script src="'.$link.'">\x3C/script>\')</script>'."\n";
+				}
+				else //css
+				{
+					$tags .= ($i) ?: HTML::style($link)."\n"; //CSS fallback not implemeted yet
+				}
+			}
 		}
 
-		return $hash;
+		return $tags;
 	}
 
 	/**
@@ -401,7 +437,7 @@ class Assets_Core {
 	{
 		$parser = new Less_Parser;
 
-		if (Arr::get($this->_config, 'minify_css', false))
+		if (Arr::get($this->_config, 'minify_css', true))
 		{
 			$parser->setOption('compress', true);
 		}
@@ -471,7 +507,6 @@ class Assets_Core {
 	{
 		if (strpos($path, '/') === 0 OR strpos($path, 'http') === 0 OR strpos($path,':\\') === 1)
 		{
-
 			$file_location = $path;
 		}
 		else
@@ -535,21 +570,16 @@ class Assets_Core {
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $hash
+	 * @param boolean $local
 	 * @return string
 	 */
 	protected function _get_tag($type, $hash)
 	{
 		$link = $this->_get_link_path($type, $hash);
-
-		if ($type == 'css')
-		{
-			return HTML::style($link)."\n";
-		}
-
-		if ($type == 'js')
-		{
-			return HTML::script($link)."\n";
-		}
+		
+		return ($type == 'css')
+			? HTML::style($link)."\n"
+			: HTML::script($link)."\n"; //js
 	}
 
 	/**
@@ -637,16 +667,22 @@ class Assets_Core {
 		$css_settings = Kohana::$config->load($filename.'.css') ?: [];
 		$return_array = $css_settings;
 
-		foreach ($config as $key => $value)
+		foreach ($config as $key => $types)
 		{
-			// Create new assets object
-			$asset = Assets::factory()
-				->css($value)
-				->force_recompile($this->_force_recompile);
-
-			if ($hash = $asset->get('css', true))
+			foreach ($types as $type => $css)
 			{
-				$css_array[$key] = $hash;
+				if ($type == 'local') // Precompile local assets only
+				{
+					// Create new assets object
+					$asset = Assets::factory()
+						->css($css)
+						->force_recompile($this->_force_recompile);
+
+					if ($hash = $asset->get('css', true))
+					{
+						$css_array[$key] = $hash;
+					}
+				}
 			}
 		}
 
@@ -679,7 +715,7 @@ class Assets_Core {
 	 * Pre-compile js files
 	 * 
 	 * @access protected
-	 * @return void
+	 * @return array
 	 */
 	protected function _run_js()
 	{
@@ -690,16 +726,20 @@ class Assets_Core {
 		$js_settings = Kohana::$config->load($filename.'.js') ?: [];
 		$js_settings = [];
 
-		foreach ($config as $key => $value)
+		foreach ($config as $key => $types)
 		{
-			// Create new assets object
-			$asset = Assets::factory()
-				->js($value)
-				->force_recompile($this->_force_recompile);
-
-			if ($hash = $asset->get('js', true))
+			foreach ($types as $type => $js)
 			{
-				$js_array[$key] = $hash;
+				if ($type == 'local') // Precompile local assets only
+				{
+					// Create new assets object
+					$asset = Assets::factory()
+						->js($js)
+						->force_recompile($this->_force_recompile);
+
+					if ($hash = $asset->get('js', true))
+						$js_array[$key] = $hash;
+				}
 			}
 		}
 
