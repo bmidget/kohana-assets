@@ -1,85 +1,86 @@
 # JS and CSS assets libaray for Kohana 3.3
 
-## Create an assets object
+## Usage example
+
+### Define your assets
+
+#### config/js.php
+
+```
+<?php defined('SYSPATH') OR die('No direct access allowed.');
+
+$base = [
+	'cdn' => [
+		'window.jQuery' => [ //jQuery and possible fallbacks
+			'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js',
+			'http://code.jquery.com/jquery-2.1.1.min.js',
+			'http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.1.min.js',
+			'assets/js/framework/jquery-2.1.1.min.js'
+		]
+	],
+	'local' => [
+		'class'        => DOCROOT.'assets/js/framework/class.js',
+		'bootstrap'    => DOCROOT.'assets/js/framework/bootstrap-2.3.1.min.js',
+		'common'       => DOCROOT.'assets/js/core/common/common.js',
+		'jqueryCustom' => DOCROOT.'assets/js/core/common/jquery.custom.js'
+	]
+];
+```
+
+#### config/css.php
+```
+<?php defined('SYSPATH') OR die('No direct access allowed.');
+
+/* CSS fallbacks are not implemented yet. Max 1 value per cdn array */
+
+//For all non empty templates
+$base = [
+	'cdn' => [ //CSS fallback not implemeted yet
+		'font' => [ //Default font on error
+			'https://fonts.googleapis.com/css?family=Open+Sans:400,300'
+		]
+	],
+	'local' => [
+		'bootstrap'  => DOCROOT.'assets/css/framework/bootstrap.css',
+		'glyphicons' => DOCROOT.'assets/css/framework/glyphicons.css',
+		'common'     => DOCROOT.'assets/css/core/common/common.css'
+	]
+];
+```
+
+## Create an assets object and set hashgroups
 
 ```
 $assets = Assets::factory();
+$assets->set_hashgroup('css', 'base');
+$assets->set_hashgroup('js', 'base');
+
+if (Kohana::$environment != Kohana::PRODUCTION)
+	$assets->update_config();
 ```
+The "update_config()" method is useful in order to update the compiled assets every refresh in your devs environnements.
 
-## Define hashgroups in config files. Here are some examples:
 
-```
-// config/js.php
-$base = [
-	'bs' => DOCROOT.'assets/bootstrap/dist/js/bootstrap.min.js',
-	'site' => DOCROOT.'assets/js/site.js',
-];
-
-return [
-	'default' => $base,
-	'admin' => $base + [
-		'footable' => DOCROOT.'assets/footable/js/footable.js',
-		'footable-paginate' => DOCROOT.'assets/footable/js/footable.paginate.js',
-		'footable-filter' => DOCROOT.'assets/footable/js/footable.filter.js',
-		'footable-sort' => DOCROOT.'assets/footable/js/footable.sort.js',
-		'admin' => DOCROOT.'assets/js/admin.js',
-	]
-];
-
-// config/css.php
-return [
-	'default' = [
-		'site' => DOCROOT.'assets/less/site.less',
-	],
-	'public' => [
-		'site' => DOCROOT.'assets/less/site.less',
-		'public' => DOCROOT.'assets/less/public.less',
-	],
-	'admin' => [
-		'site' => DOCROOT.'assets/less/site.less',
-		'footable' => DOCROOT.'assets/less/footable.less',
-		'admin' => DOCROOT.'assets/less/admin.less',
-	],
-	'special_page' => [
-		'site' => DOCROOT.'assets/less/site.less',
-		'special' => DOCROOT.'assets/less/special.less',
-	],
-];
-```
-
-## Then specify the hashgroup to use
+## Render the tags in your views
 
 ```
-$assets->set_hashgroup('css', 'admin');
-$assets->set_hashgroup('js','admin');
+<?=$assets->get_tags('css')?>
+<?=$assets->get_tags('js')?>
 ```
 
-## Pre-compile assets
+### Pre-compile assets
 
 You can create a minion task to do this as a deployment script for your production environment.
 
 ```
 class Task_Asset_Compile extends Minion_Task {
 
-	protected function _execute( array $params)
+	protected function _execute(array $params)
 	{
 		$asset = Assets::factory();
 		$asset->update_config();
 	}
 
-}
-```
-
-And in your dev environment, it's nice to update the compiled assets every refresh. Here's an example of setting this up in a Template controller:
-
-```
-$this->template->bind('assets', $this->_assets);
-
-$this->_assets = Assets::factory();
-
-if (Kohana::$environment === Kohana::DEVELOPMENT)
-{
-	$this->_assets->update_config();
 }
 ```
 
@@ -89,3 +90,5 @@ if (Kohana::$environment === Kohana::DEVELOPMENT)
 <?=$assets->get_cached('css', true)?>
 <?=$assets->get_cached('js', true)?>
 ```
+
+That's pretty much it! Enjoy!
