@@ -1,4 +1,4 @@
-# JS and CSS assets libaray for Kohana 3.3
+# JS and CSS assets library for Kohana 3.3
 
 ## Usage example
 
