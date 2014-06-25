@@ -1,5 +1,9 @@
 # JS and CSS assets library for Kohana 3.3
 
+This library make simple including and compressing assets (css-less, js) to your Kohana projects.
+
+It supports local assets and CDN assets for JS files.
+
 ## Basic example
 
 ### Define your assets
