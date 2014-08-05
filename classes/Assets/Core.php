@@ -254,16 +254,19 @@ class Assets_Core {
 	{
 		$tags = '';
 		$config = Kohana::$config->load($type);
+		$protocol = Request::current()->secure() ? 'https://' : 'http://';
 		
 		foreach ($config[$name]['cdn'] as $defaultObject => $links)
 		{
 			foreach ($links as $i => $link)
 			{
+				$wholeLink = $protocol.$link;
 				if ($type == 'js')
 				{
+					$scriptSrc = (strpos($protocol.$link, '///') === FALSE) ? $wholeLink : $link;
 					$tags .= (!$i)
-						? HTML::script($link)."\n"
-						: '<script type="text/javascript">'.$defaultObject.' || document.write(\'<script src="'.$link.'">\x3C/script>\')</script>'."\n";
+						? HTML::script($wholeLink)."\n"
+						: '<script type="text/javascript">'.$defaultObject.' || document.write(\'<script src="'.$scriptSrc.'">\x3C/script>\')</script>'."\n";
 				}
 				else //css
 				{

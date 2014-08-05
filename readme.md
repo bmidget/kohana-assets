@@ -16,10 +16,10 @@ It supports local assets and CDN assets for JS files.
 $base = [
 	'cdn' => [
 		'window.jQuery' => [ //jQuery and possible fallbacks
-			'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js',
-			'http://code.jquery.com/jquery-2.1.1.min.js',
-			'http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.1.min.js',
-			'assets/js/framework/jquery-2.1.1.min.js'
+			'ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js',
+			'code.jquery.com/jquery-2.1.1.min.js',
+			'ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.1.min.js',
+			URL::site('assets/js/framework/jquery-2.1.1.min.js')
 		]
 	],
 	'local' => [
@@ -130,7 +130,7 @@ $user = [
 
 $default = array_merge_recursive($base, $default);
 return [
-  	'front'   => $front,
+  'front'   => $front,
 	'default' => $default,
  	'default/user/edit' => array_merge_recursive($default, $user['edit'])
 ];
