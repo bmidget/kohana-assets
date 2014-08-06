@@ -4,6 +4,8 @@ This library make simple including and compressing assets (css-less, js) to your
 
 It supports local assets and CDN assets for JS files.
 
+Every CDN assets must have a fallback defined.
+
 ## Basic example
 
 ### Define your assets
@@ -15,18 +17,18 @@ It supports local assets and CDN assets for JS files.
 
 $base = [
 	'cdn' => [
-		'window.jQuery' => [ //jQuery and possible fallbacks
+		'window.jQuery' => [
 			'ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js',
 			'code.jquery.com/jquery-2.1.1.min.js',
 			'ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.1.min.js',
-			URL::site('assets/js/framework/jquery-2.1.1.min.js')
+			'assets/js/framework/jquery-2.1.1.min.js'
 		]
 	],
 	'local' => [
-		'class'        => DOCROOT.'assets/js/framework/class.js',
-		'bootstrap'    => DOCROOT.'assets/js/framework/bootstrap-2.3.1.min.js',
-		'common'       => DOCROOT.'assets/js/core/common/common.js',
-		'jqueryCustom' => DOCROOT.'assets/js/core/common/jquery.custom.js'
+		'class'        => 'assets/js/framework/class.js',
+		'bootstrap'    => 'assets/js/framework/bootstrap-2.3.1.min.js',
+		'common'       => 'assets/js/core/common/common.js',
+		'jqueryCustom' => 'assets/js/core/common/jquery.custom.js'
 	]
 ];
 
@@ -49,9 +51,9 @@ $base = [
 		]
 	],
 	'local' => [
-		'bootstrap'  => DOCROOT.'assets/css/framework/bootstrap.css',
-		'glyphicons' => DOCROOT.'assets/css/framework/glyphicons.css',
-		'common'     => DOCROOT.'assets/css/core/common/common.css'
+		'bootstrap'  => 'assets/css/framework/bootstrap.css',
+		'glyphicons' => 'assets/css/framework/glyphicons.css',
+		'common'     => 'assets/css/core/common/common.css'
 	]
 ];
 
@@ -98,9 +100,9 @@ $base = [
 		]
 	],
 	'local' => [
-		'bootstrap'  => DOCROOT.'assets/css/framework/bootstrap.css',
-		'glyphicons' => DOCROOT.'assets/css/framework/glyphicons.css',
-		'common'     => DOCROOT.'assets/css/core/common/common.css'
+		'bootstrap'  => 'assets/css/framework/bootstrap.css',
+		'glyphicons' => 'assets/css/framework/glyphicons.css',
+		'common'     => 'assets/css/core/common/common.css'
 	]
 ];
 
@@ -108,11 +110,11 @@ $base = [
 $default = [
 	'cdn' => [],
 	'local' => [
-		'antiscroll' 		=> DOCROOT.'assets/css/plugins/jquery.antiscroll.css',
-		'fileupload' 		=> DOCROOT.'assets/css/plugins/jquery.fileupload-ui.css',
-		'fileuploadeOverride' 	=> DOCROOT.'assets/css/plugins/jquery.fileupload-ui.override.css',
-		'qtip'                	=> DOCROOT.'assets/css/plugins/jquery.qtip.min.css',
-		'default'    		=> DOCROOT.'assets/css/core/template/default.css'
+		'antiscroll' 		=> 'assets/css/plugins/jquery.antiscroll.css',
+		'fileupload' 		=> 'assets/css/plugins/jquery.fileupload-ui.css',
+		'fileuploadeOverride' 	=> 'assets/css/plugins/jquery.fileupload-ui.override.css',
+		'qtip'                	=> 'assets/css/plugins/jquery.qtip.min.css',
+		'default'    		=> 'assets/css/core/template/default.css'
 	]
 ];
 
@@ -121,9 +123,9 @@ $user = [
 	'edit' => [
 		'cdn' => [],
 		'local' => [
-			'edit'  => DOCROOT.'assets/css/core/user/edit.css',
-			'jcrop' => DOCROOT.'assets/css/plugins/jquery.jcrop.min.css',
-			'jcropOverride' => DOCROOT.'assets/css/plugins/jquery.jcrop.min.override.css'
+			'edit'  => 'assets/css/core/user/edit.css',
+			'jcrop' => 'assets/css/plugins/jquery.jcrop.min.css',
+			'jcropOverride' => 'assets/css/plugins/jquery.jcrop.min.override.css'
 		]
 	]
 ];

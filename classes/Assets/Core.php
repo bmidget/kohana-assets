@@ -258,15 +258,18 @@ class Assets_Core {
 		
 		foreach ($config[$name]['cdn'] as $defaultObject => $links)
 		{
+			$nbLinks = count($links)-1;
 			foreach ($links as $i => $link)
 			{
 				$wholeLink = $protocol.$link;
 				if ($type == 'js')
 				{
-					$scriptSrc = (strpos($protocol.$link, '///') === FALSE) ? $wholeLink : $link;
-					$tags .= (!$i)
-						? HTML::script($wholeLink)."\n"
-						: '<script type="text/javascript">'.$defaultObject.' || document.write(\'<script src="'.$scriptSrc.'">\x3C/script>\')</script>'."\n";
+					if ($i == 0 && $nbLinks > 0)
+						$tags .= HTML::script($wholeLink)."\n";
+					elseif ($i == 0 && $nbLinks == 0)
+						$tags .= HTML::script($link)."\n";
+					else
+						$tags .= '<script type="text/javascript">'.$defaultObject.' || document.write(\'<script src="'.(($i == $nbLinks) ? URL::site($link) : $wholeLink).'">\x3C/script>\')</script>'."\n";
 				}
 				else //css
 				{
@@ -674,17 +677,17 @@ class Assets_Core {
 		{
 			foreach ($types as $type => $css)
 			{
-				if ($type == 'local') // Precompile local assets only
+				if ($type == 'local') //Precompile local assets only
 				{
-					// Create new assets object
+					//Add DOCROOT before local CSS files and create new assets object
+					$css = array_map(function($css) {
+						return DOCROOT.$css;
+					}, $css);
 					$asset = Assets::factory()
 						->css($css)
 						->force_recompile($this->_force_recompile);
-
 					if ($hash = $asset->get('css', true))
-					{
 						$css_array[$key] = $hash;
-					}
 				}
 			}
 		}
@@ -733,13 +736,15 @@ class Assets_Core {
 		{
 			foreach ($types as $type => $js)
 			{
-				if ($type == 'local') // Precompile local assets only
+				if ($type == 'local') //Precompile local assets only
 				{
-					// Create new assets object
+					//Add DOCROOT before local JS files and create new assets object
+					$js = array_map(function($js) {
+						return DOCROOT.$js;
+					}, $js);
 					$asset = Assets::factory()
 						->js($js)
 						->force_recompile($this->_force_recompile);
-
 					if ($hash = $asset->get('js', true))
 						$js_array[$key] = $hash;
 				}
